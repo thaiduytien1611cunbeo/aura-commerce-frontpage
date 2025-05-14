@@ -91,12 +91,14 @@ const Products = () => {
     fetchProducts();
   }, [fetchProducts]);
 
+  // Updated type definition to include the page parameter
   const updateFilters = (filters: {
     search?: string;
     category?: string;
     minPrice?: string;
     maxPrice?: string;
     sort?: string;
+    page?: string;  // Added page parameter to the type definition
   }) => {
     const newParams = new URLSearchParams(searchParams);
     
