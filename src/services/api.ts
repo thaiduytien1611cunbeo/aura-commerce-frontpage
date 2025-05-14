@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { Product, Category, User } from "../types";
 
@@ -103,6 +102,14 @@ const mockUser = {
   isAdmin: true
 };
 
+// Mock regular user for development
+const mockRegularUser = {
+  id: "2",
+  name: "Jane Smith",
+  email: "jane@example.com",
+  isAdmin: false
+};
+
 // Utility function to simulate API request with delay
 const simulateRequest = <T>(data: T): Promise<T> => {
   return new Promise((resolve) => {
@@ -110,6 +117,16 @@ const simulateRequest = <T>(data: T): Promise<T> => {
       resolve(data);
     }, API_DELAY);
   });
+};
+
+// Check for auth token
+const getAuthToken = () => {
+  return localStorage.getItem('authToken');
+};
+
+// Check if token is admin token (mock implementation)
+const isAdminToken = (token: string) => {
+  return token === 'mock-auth-token-admin';
 };
 
 // API functions
@@ -157,12 +174,24 @@ export const getCategories = async (): Promise<Category[]> => {
 
 export const getCurrentUser = async (): Promise<User | null> => {
   try {
-    // In a real app: const response = await fetch('/api/users/me');
+    // In a real app: 
+    // const token = getAuthToken();
+    // if (!token) return null;
+    // const response = await fetch('/api/users/me', {
+    //   headers: { 'Authorization': `Bearer ${token}` }
+    // });
     // const data = await response.json();
     
-    return await simulateRequest(mockUser);
+    // For demo purposes:
+    const token = getAuthToken();
+    if (!token) return null;
+    
+    // Return mock user based on token
+    const userData = isAdminToken(token) ? mockUser : mockRegularUser;
+    
+    return await simulateRequest(userData);
   } catch (error) {
-    console.error("Failed to fetch user data", error);
+    console.error("Failed to fetch user data:", error);
     // Don't show error toast as this might be a normal state (not logged in)
     return null;
   }
@@ -189,10 +218,19 @@ export const searchProducts = async (query: string): Promise<Product[]> => {
 
 export const addToCart = async (productId: string, quantity: number = 1): Promise<void> => {
   try {
+    // Check for authentication token
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+    
     // In a real app: 
     // const response = await fetch('/api/cart/add', {
     //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
+    //   headers: { 
+    //     'Content-Type': 'application/json',
+    //     'Authorization': `Bearer ${token}`
+    //   },
     //   body: JSON.stringify({ productId, quantity })
     // });
     // const data = await response.json();
@@ -202,8 +240,39 @@ export const addToCart = async (productId: string, quantity: number = 1): Promis
     toast.success("Product added to cart");
     
   } catch (error) {
-    console.error("Failed to add to cart", error);
+    console.error("Failed to add to cart:", error);
     toast.error("Failed to add product to cart");
     throw error;
+  }
+};
+
+export const loginUser = async (email: string, password: string): Promise<{token: string, user: User}> => {
+  try {
+    // In a real app: 
+    // const response = await fetch('/api/users/login', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ email, password })
+    // });
+    // const data = await response.json();
+    
+    // For demo purposes:
+    await simulateRequest({ success: true });
+    
+    // Check if admin credentials
+    if (email === 'admin@example.com' && password === 'password') {
+      return { 
+        token: 'mock-auth-token-admin',
+        user: mockUser
+      };
+    } else {
+      return {
+        token: 'mock-auth-token-user',
+        user: mockRegularUser
+      };
+    }
+  } catch (error) {
+    console.error("Login failed:", error);
+    throw new Error('Authentication failed');
   }
 };

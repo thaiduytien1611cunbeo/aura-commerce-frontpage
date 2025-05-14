@@ -20,3 +20,18 @@ export interface User {
   email: string;
   isAdmin: boolean;
 }
+
+export interface Review {
+  id: string;
+  username: string;
+  rating: number;
+  comment: string;
+}
+
+export interface Order {
+  id: string;
+  date: string;
+  total: number;
+  status: 'pending' | 'shipped' | 'delivered';
+  items: number;
+}

@@ -1,37 +1,26 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, ShoppingCart, Search, Menu, X } from 'lucide-react';
-import { getCurrentUser } from '../services/api';
-import { User as UserType } from '../types';
+import { User, ShoppingCart, Search, Menu, X, LogOut } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
-  const [user, setUser] = useState<UserType | null>(null);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userData = await getCurrentUser();
-        setUser(userData);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
+  const { user, isAuthenticated, isAdmin, logout, isLoading } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
+      setIsMenuOpen(false);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   return (
@@ -59,7 +48,7 @@ const Header: React.FC = () => {
             <Link to="/products" className="text-sm font-medium text-gray-700 hover:text-black">
               Products
             </Link>
-            {user?.isAdmin && (
+            {isAuthenticated && isAdmin && (
               <Link to="/admin" className="text-sm font-medium text-gray-700 hover:text-black">
                 Admin
               </Link>
@@ -87,10 +76,23 @@ const Header: React.FC = () => {
               <ShoppingCart className="w-5 h-5" />
             </Link>
 
-            {/* User icon */}
-            <Link to={user ? "/account" : "/login"} className="p-2 rounded-full hover:bg-gray-100 ml-2">
-              <User className="w-5 h-5" />
-            </Link>
+            {/* User icon / Login / Logout */}
+            {isLoading ? (
+              <div className="p-2 rounded-full hover:bg-gray-100 ml-2">
+                <div className="w-5 h-5 rounded-full bg-gray-200 animate-pulse"></div>
+              </div>
+            ) : isAuthenticated ? (
+              <button 
+                onClick={handleLogout}
+                className="p-2 rounded-full hover:bg-gray-100 ml-2 flex items-center"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            ) : (
+              <Link to="/login" className="p-2 rounded-full hover:bg-gray-100 ml-2">
+                <User className="w-5 h-5" />
+              </Link>
+            )}
 
             {/* Mobile menu button */}
             <button 
@@ -126,7 +128,7 @@ const Header: React.FC = () => {
                 Products
               </Link>
               
-              {user?.isAdmin && (
+              {isAuthenticated && isAdmin && (
                 <Link 
                   to="/admin" 
                   className="text-base font-medium text-gray-700 hover:text-black"
@@ -136,13 +138,26 @@ const Header: React.FC = () => {
                 </Link>
               )}
               
-              <Link 
-                to={user ? "/account" : "/login"} 
-                className="text-base font-medium text-gray-700 hover:text-black"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {user ? 'My Account' : 'Login'}
-              </Link>
+              {isAuthenticated ? (
+                <button 
+                  onClick={() => {
+                    logout();
+                    setIsMenuOpen(false);
+                    navigate('/');
+                  }}
+                  className="text-base font-medium text-gray-700 hover:text-black text-left"
+                >
+                  Logout
+                </button>
+              ) : (
+                <Link 
+                  to="/login" 
+                  className="text-base font-medium text-gray-700 hover:text-black"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Login
+                </Link>
+              )}
             </nav>
           </div>
         )}
