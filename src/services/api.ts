@@ -123,8 +123,14 @@ export const getProducts = async (sortOrder = "price_asc"): Promise<Product[]> =
     const sortedProducts = [...mockProducts].sort((a, b) => {
       if (sortOrder === "price_asc") {
         return a.price - b.price;
-      } else {
+      } else if (sortOrder === "price_desc") {
         return b.price - a.price;
+      } else if (sortOrder === "name_asc") {
+        return a.name.localeCompare(b.name);
+      } else if (sortOrder === "name_desc") {
+        return b.name.localeCompare(a.name);
+      } else {
+        return a.price - b.price;
       }
     });
     
@@ -177,6 +183,27 @@ export const searchProducts = async (query: string): Promise<Product[]> => {
   } catch (error) {
     console.error("Failed to search products", error);
     toast.error("Failed to search products");
+    throw error;
+  }
+};
+
+export const addToCart = async (productId: string, quantity: number = 1): Promise<void> => {
+  try {
+    // In a real app: 
+    // const response = await fetch('/api/cart/add', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ productId, quantity })
+    // });
+    // const data = await response.json();
+    
+    // Simulate API call
+    await simulateRequest({ success: true });
+    toast.success("Product added to cart");
+    
+  } catch (error) {
+    console.error("Failed to add to cart", error);
+    toast.error("Failed to add product to cart");
     throw error;
   }
 };
